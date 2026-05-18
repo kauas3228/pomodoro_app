@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.ikaroorg.pomodoro_app.ui.screen.HomeScreen
 import com.ikaroorg.pomodoro_app.ui.theme.Pomodoro_appTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,27 +30,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Pomodoro_appTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .background(MaterialTheme.colorScheme.background),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.logo),
-                            contentDescription = "Pomodoro App Logo"
-                        )
-                        Text(
-                            "Pomodoro App",
-                             fontSize = 22.sp,
-                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                }
+                HomeScreen()
             }
         }
     }
