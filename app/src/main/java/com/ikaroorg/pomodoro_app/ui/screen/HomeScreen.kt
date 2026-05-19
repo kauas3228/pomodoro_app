@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -111,6 +112,20 @@ fun HomeScreen() {
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
+            }
+            Spacer(Modifier.height(26.dp))
+            Column(
+                Modifier.width(280.dp)
+                    .height(280.dp)
+                    .border(8.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(100)),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "25:00",
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
