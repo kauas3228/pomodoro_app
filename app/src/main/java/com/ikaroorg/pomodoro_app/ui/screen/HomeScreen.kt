@@ -3,6 +3,8 @@ package com.ikaroorg.pomodoro_app.ui.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +17,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,15 +46,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ikaroorg.pomodoro_app.R
+import com.ikaroorg.pomodoro_app.data.Task
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
     val dots = listOf(1, 2, 3, 4)
     var isPomodoroPlay by remember { mutableStateOf(false) }
-
+    val tasks = remember {
+        mutableStateListOf<Task>(
+            Task(
+                id = "1",
+                title = "Estudar Flutter",
+                description = "Estudar para a prova de matematica"
+            ),
+            Task(
+                id = "2",
+                title = "Criar tela de pomodoro",
+                description = "Trabalhar na empresa"
+            ),
+        )
+    }
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -76,6 +101,7 @@ fun HomeScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -208,6 +234,42 @@ fun HomeScreen() {
                         contentDescription = "Pomodoro Skip",
                         modifier = Modifier.size(32.dp)
                     )
+                }
+            }
+            Spacer(Modifier.height(22.dp))
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                items(tasks.size) { index ->
+                    val task = tasks[index]
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(color = if(task.isComplete) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ){
+                        Checkbox(
+                            colors = CheckboxDefaults.colors(
+                                uncheckedColor = MaterialTheme.colorScheme.outline
+                            ),
+                            checked = task.isComplete,
+                            onCheckedChange = { isChecked ->
+                                tasks[index] = task.copy(isComplete = isChecked)
+                            },
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            task.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if(task.isComplete) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
