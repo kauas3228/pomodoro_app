@@ -247,7 +247,8 @@ fun HomeScreen() {
                     Row(
                         modifier = Modifier.fillMaxWidth()
                             .background(color = if(task.isComplete) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
-                            .padding(16.dp),
+                            .padding(16.dp)
+                            .clickable {tasks[index] = task.copy(isComplete = !task.isComplete)},
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ){
@@ -256,9 +257,7 @@ fun HomeScreen() {
                                 uncheckedColor = MaterialTheme.colorScheme.outline
                             ),
                             checked = task.isComplete,
-                            onCheckedChange = { isChecked ->
-                                tasks[index] = task.copy(isComplete = isChecked)
-                            },
+                            onCheckedChange = { tasks[index] = task.copy(isComplete = it) },
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(8.dp))
