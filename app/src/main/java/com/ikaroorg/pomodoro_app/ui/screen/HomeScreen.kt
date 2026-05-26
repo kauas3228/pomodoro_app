@@ -45,12 +45,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.ikaroorg.pomodoro_app.R
 import com.ikaroorg.pomodoro_app.data.Task
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    navController: NavController
+) {
     val dots = listOf(1, 2, 3, 4)
     var isPomodoroPlay by remember { mutableStateOf(false) }
     val tasks = remember {
@@ -88,7 +91,9 @@ fun HomeScreen() {
                 },
                 actions = {
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            navController.navigate("settings")
+                        },
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
