@@ -25,11 +25,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -38,18 +35,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.ikaroorg.pomodoro_app.R
+import com.ikaroorg.pomodoro_app.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: SettingsViewModel
 ) {
-    var focusTime by remember { mutableIntStateOf(25) }
-    var shortPause by remember { mutableIntStateOf(5) }
-    var longPause by remember { mutableIntStateOf(15) }
-    var useSound by remember { mutableStateOf(true) }
-    var useVibrate by remember { mutableStateOf(true) }
-    var keepScreenOn by remember { mutableStateOf(false) }
+    val focusTime by viewModel.focusTime.collectAsState()
+    val shortPause by viewModel.shortPause.collectAsState()
+    val longPause by viewModel.longPause.collectAsState()
+    val useSound by viewModel.useSound.collectAsState()
+    val useVibrate by viewModel.useVibrate.collectAsState()
+    val keepScreenOn by viewModel.keepScreenOn.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -111,7 +110,7 @@ fun SettingsScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                focusTime = focusTime - 5
+                                viewModel.updateFocusTime(focusTime - 5)
                             },
                             enabled = focusTime > 5,
                             colors = IconButtonDefaults.iconButtonColors(
@@ -147,7 +146,7 @@ fun SettingsScreen(
                         Spacer(Modifier.width(16.dp))
                         IconButton(
                             onClick = {
-                                focusTime = focusTime + 5
+                                viewModel.updateFocusTime(focusTime + 5)
                             },
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -187,7 +186,7 @@ fun SettingsScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                shortPause = shortPause - 5
+                                viewModel.updateShortPause(shortPause - 5)
                             },
                             enabled = shortPause > 5,
                             colors = IconButtonDefaults.iconButtonColors(
@@ -223,7 +222,7 @@ fun SettingsScreen(
                         Spacer(Modifier.width(16.dp))
                         IconButton(
                             onClick = {
-                                shortPause = shortPause + 5
+                                viewModel.updateShortPause(shortPause + 5)
                             },
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -269,7 +268,7 @@ fun SettingsScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                longPause = longPause - 5
+                                viewModel.updateLongPause(longPause - 5)
                             },
                             enabled = longPause > 5,
                             colors = IconButtonDefaults.iconButtonColors(
@@ -305,7 +304,7 @@ fun SettingsScreen(
                         Spacer(Modifier.width(16.dp))
                         IconButton(
                             onClick = {
-                                longPause = longPause + 5
+                                viewModel.updateLongPause(longPause + 5)
                             },
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -360,7 +359,7 @@ fun SettingsScreen(
                         Switch(
                             checked = useSound,
                             onCheckedChange = {
-                                useSound = it
+                                viewModel.toggleSound(it)
                             }
                         )
                     }
@@ -381,7 +380,7 @@ fun SettingsScreen(
                         Switch(
                             checked = useVibrate,
                             onCheckedChange = {
-                                useVibrate = it
+                                viewModel.toggleVibrate(it)
                             }
                         )
                     }
@@ -408,7 +407,7 @@ fun SettingsScreen(
                         Switch(
                             checked = keepScreenOn,
                             onCheckedChange = {
-                                keepScreenOn = it
+                                viewModel.toggleKeepScreenOn(it)
                             }
                         )
                     }
