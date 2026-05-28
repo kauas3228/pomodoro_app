@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ikaroorg.pomodoro_app.R
-import com.ikaroorg.pomodoro_app.data.Task
+import com.ikaroorg.pomodoro_app.data.model.Task
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package com.ikaroorg.pomodoro_app.data
+package com.ikaroorg.pomodoro_app.data.model
 
 data class Task(
     val id: String,
