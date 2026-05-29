@@ -8,23 +8,29 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ikaroorg.pomodoro_app.ui.screen.HomeScreen
 import com.ikaroorg.pomodoro_app.ui.screen.SettingsScreen
+import com.ikaroorg.pomodoro_app.viewmodel.HomeViewModel
 import com.ikaroorg.pomodoro_app.viewmodel.SettingsViewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun AppRoot() {
     val navController = rememberNavController()
-    val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
+    val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModel.provideFactory(settingsViewModel)
+    )
+    
     NavHost(navController = navController, startDestination = "home"){
             composable("home"){
                 HomeScreen(
                     navController = navController,
+                    viewModel = homeViewModel
                 )
             }
             composable("settings"){
                 SettingsScreen(
                     navController = navController,
-                    viewModel = viewModel
+                    viewModel = settingsViewModel
                 )
             }
     }
