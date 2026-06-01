@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -354,27 +355,44 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth()
                             .background(color = if(task.isComplete) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
-                            .padding(16.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                             .clickable { viewModel.toggleTaskCompletion(task.id) },
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ){
-                        Checkbox(
-                            colors = CheckboxDefaults.colors(
-                                uncheckedColor = MaterialTheme.colorScheme.outline
-                            ),
-                            checked = task.isComplete,
-                            onCheckedChange = { viewModel.toggleTaskCompletion(task.id) },
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            task.title,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if(task.isComplete) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Checkbox(
+                                colors = CheckboxDefaults.colors(
+                                    uncheckedColor = MaterialTheme.colorScheme.outline
+                                ),
+                                checked = task.isComplete,
+                                onCheckedChange = { viewModel.toggleTaskCompletion(task.id) },
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                task.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if(task.isComplete) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+                        IconButton(
+                            onClick = { viewModel.deleteTask(task.id) },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Excluir tarefa",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }

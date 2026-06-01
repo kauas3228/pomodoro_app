@@ -167,6 +167,12 @@ class HomeViewModel(
         updateTasks(currentTasks)
     }
 
+    fun deleteTask(taskId: String) {
+        val currentTasks = tasks.value.toMutableList()
+        currentTasks.removeAll { it.id == taskId }
+        updateTasks(currentTasks)
+    }
+
     fun updateTasks(tasks: List<Task>) {
         viewModelScope.launch {
             dataStoreManager.saveTasks(tasks)
