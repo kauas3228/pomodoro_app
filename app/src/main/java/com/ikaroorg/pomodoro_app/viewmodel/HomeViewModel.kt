@@ -10,17 +10,24 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.ikaroorg.pomodoro_app.data.local.DataStoreManager
+import com.ikaroorg.pomodoro_app.data.model.Task
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 enum class PomodoroSession {
     FOCUS, SHORT_BREAK, LONG_BREAK
 }
 
 class HomeViewModel(
-    private val settingsViewModel: SettingsViewModel
+    private val settingsViewModel: SettingsViewModel,
+    private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
 
     var timerValue by mutableLongStateOf(25 * 60L)
@@ -34,6 +41,12 @@ class HomeViewModel(
 
     var focusCycles by mutableIntStateOf(0)
         private set
+
+    val tasks: StateFlow<List<Task>> = dataStoreManager.tasks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(3000),
+        initialValue = emptyList()
+    )
 
     private var timerJob: Job? = null
 
@@ -143,10 +156,40 @@ class HomeViewModel(
         return "%02d:%02d".format(minutes, seconds)
     }
 
+    fun addTask(title: String) {
+        val currentTasks = tasks.value.toMutableList()
+        val newTask = Task(
+            id = UUID.randomUUID().toString(),
+            title = title,
+            description = ""
+        )
+        currentTasks.add(newTask)
+        updateTasks(currentTasks)
+    }
+
+    fun updateTasks(tasks: List<Task>) {
+        viewModelScope.launch {
+            dataStoreManager.saveTasks(tasks)
+        }
+    }
+
+    fun toggleTaskCompletion(taskId: String) {
+        val currentTasks = tasks.value.toMutableList()
+        val index = currentTasks.indexOfFirst { it.id == taskId }
+        if (index != -1) {
+            val task = currentTasks[index]
+            currentTasks[index] = task.copy(isComplete = !task.isComplete)
+            updateTasks(currentTasks)
+        }
+    }
+
     companion object {
         fun provideFactory(settingsViewModel: SettingsViewModel): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                HomeViewModel(settingsViewModel)
+                val context = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
+                    ?: throw IllegalStateException("Application context not found")
+
+                HomeViewModel(settingsViewModel, dataStoreManager = DataStoreManager(context))
             }
         }
     }

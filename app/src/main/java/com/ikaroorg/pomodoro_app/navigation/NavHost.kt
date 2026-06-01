@@ -16,10 +16,7 @@ import com.ikaroorg.pomodoro_app.viewmodel.SettingsViewModel
 fun AppRoot() {
     val navController = rememberNavController()
     val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
-    val homeViewModel: HomeViewModel = viewModel(
-        factory = HomeViewModel.provideFactory(settingsViewModel)
-    )
-    
+    val homeViewModel: HomeViewModel = viewModel( factory = HomeViewModel.provideFactory(settingsViewModel) )
     NavHost(navController = navController, startDestination = "home"){
             composable("home"){
                 HomeScreen(

@@ -7,12 +7,16 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ikaroorg.pomodoro_app.data.model.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class UserPreferences(private val context: Context) {
+class DataStoreManager(private val context: Context) {
     companion object {
         val FOCUS_TIME = intPreferencesKey("focus_time")
         val SHORT_PAUSE = intPreferencesKey("short_pause")
@@ -20,6 +24,7 @@ class UserPreferences(private val context: Context) {
         val USE_SOUND = booleanPreferencesKey("use_sound")
         val USE_VIBRATE = booleanPreferencesKey("use_vibrate")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
+        val TASKS = stringPreferencesKey("tasks")
     }
 
     val focusTime: Flow<Int> = context.dataStore.data.map { preferences ->
@@ -44,6 +49,15 @@ class UserPreferences(private val context: Context) {
 
     val keepScreenOn: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[KEEP_SCREEN_ON] ?: false
+    }
+
+    val tasks: Flow<List<Task>> = context.dataStore.data.map { preferences ->
+        val tasksJson = preferences[TASKS] ?: return@map emptyList()
+        try {
+            Json.decodeFromString<List<Task>>(tasksJson)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     // Suspend Functions
@@ -81,6 +95,12 @@ class UserPreferences(private val context: Context) {
     suspend fun saveKeepScreenOn(keepScreenOn: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEEP_SCREEN_ON] = keepScreenOn
+        }
+    }
+
+    suspend fun saveTasks(tasks: List<Task>) {
+        context.dataStore.edit { preferences ->
+            preferences[TASKS] = Json.encodeToString(tasks)
         }
     }
 }

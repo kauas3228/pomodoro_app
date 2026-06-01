@@ -1,5 +1,10 @@
 package com.ikaroorg.pomodoro_app.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,21 +25,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ikaroorg.pomodoro_app.R
-import com.ikaroorg.pomodoro_app.data.model.Task
 import com.ikaroorg.pomodoro_app.viewmodel.HomeViewModel
 import com.ikaroorg.pomodoro_app.viewmodel.PomodoroSession
 
@@ -55,20 +68,10 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel
 ) {
-    val tasks = remember {
-        mutableStateListOf<Task>(
-            Task(
-                id = "1",
-                title = "Estudar Flutter",
-                description = "Estudar para a prova de matematica"
-            ),
-            Task(
-                id = "2",
-                title = "Criar tela de pomodoro",
-                description = "Trabalhar na empresa"
-            ),
-        )
-    }
+    val tasks by viewModel.tasks.collectAsState()
+    var isMenuExpanded by remember { mutableStateOf(false) }
+    var showAddTaskDialog by remember { mutableStateOf(false) }
+    var newTaskTitle by remember { mutableStateOf("") }
 
     val activeColor = when (viewModel.currentSession) {
         PomodoroSession.FOCUS -> MaterialTheme.colorScheme.primary
@@ -82,9 +85,42 @@ fun HomeScreen(
         PomodoroSession.LONG_BREAK -> MaterialTheme.colorScheme.onTertiary
     }
 
+    if (showAddTaskDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddTaskDialog = false },
+            title = { Text("Nova Tarefa") },
+            text = {
+                OutlinedTextField(
+                    value = newTaskTitle,
+                    onValueChange = { newTaskTitle = it },
+                    label = { Text("Título da tarefa") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newTaskTitle.isNotBlank()) {
+                            viewModel.addTask(newTaskTitle)
+                            newTaskTitle = ""
+                            showAddTaskDialog = false
+                            isMenuExpanded = false
+                        }
+                    }
+                ) {
+                    Text("Criar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddTaskDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -103,9 +139,7 @@ fun HomeScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            navController.navigate("settings")
-                        },
+                        onClick = { navController.navigate("settings") },
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
@@ -119,6 +153,33 @@ fun HomeScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AnimatedVisibility(
+                    visible = isMenuExpanded,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Button(
+                        onClick = { showAddTaskDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = activeColor)
+                    ) {
+                        Text("Criar Tarefa", color = onActiveColor)
+                    }
+                }
+                FloatingActionButton(
+                    onClick = { isMenuExpanded = !isMenuExpanded },
+                    containerColor = activeColor,
+                    contentColor = onActiveColor,
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Menu de tarefas")
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -294,7 +355,7 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth()
                             .background(color = if(task.isComplete) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
                             .padding(16.dp)
-                            .clickable {tasks[index] = task.copy(isComplete = !task.isComplete)},
+                            .clickable { viewModel.toggleTaskCompletion(task.id) },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ){
@@ -303,7 +364,7 @@ fun HomeScreen(
                                 uncheckedColor = MaterialTheme.colorScheme.outline
                             ),
                             checked = task.isComplete,
-                            onCheckedChange = { tasks[index] = task.copy(isComplete = it) },
+                            onCheckedChange = { viewModel.toggleTaskCompletion(task.id) },
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(8.dp))

@@ -1,47 +1,49 @@
 package com.ikaroorg.pomodoro_app.viewmodel
 
-import com.ikaroorg.pomodoro_app.data.local.UserPreferences
+import com.ikaroorg.pomodoro_app.data.local.DataStoreManager
+import com.ikaroorg.pomodoro_app.data.model.Task
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val userPreferences: UserPreferences) : ViewModel() {
-    val focusTime = userPreferences.focusTime.stateIn(
+class SettingsViewModel(private val dataStoreManager: DataStoreManager) : ViewModel() {
+    val focusTime = dataStoreManager.focusTime.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
         initialValue = 25
     )
 
-    val shortPause = userPreferences.shortPause.stateIn(
+    val shortPause = dataStoreManager.shortPause.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
         initialValue = 5
     )
 
-    val longPause = userPreferences.longPause.stateIn(
+    val longPause = dataStoreManager.longPause.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
         initialValue = 15
     )
 
-    val useSound = userPreferences.useSound.stateIn(
+    val useSound = dataStoreManager.useSound.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
         initialValue = true
     )
 
-    val useVibrate = userPreferences.useVibrate.stateIn(
+    val useVibrate = dataStoreManager.useVibrate.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
         initialValue = true
     )
 
-    val keepScreenOn = userPreferences.keepScreenOn.stateIn(
+    val keepScreenOn = dataStoreManager.keepScreenOn.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
         initialValue = false
@@ -49,37 +51,37 @@ class SettingsViewModel(private val userPreferences: UserPreferences) : ViewMode
 
     fun updateFocusTime(minutes: Int) {
         viewModelScope.launch {
-            userPreferences.saveFocusTime(minutes)
+            dataStoreManager.saveFocusTime(minutes)
         }
     }
 
     fun updateShortPause(minutes: Int) {
         viewModelScope.launch {
-            userPreferences.saveShortPause(minutes)
+            dataStoreManager.saveShortPause(minutes)
         }
     }
 
     fun updateLongPause(minutes: Int) {
         viewModelScope.launch {
-            userPreferences.saveLongPause(minutes)
+            dataStoreManager.saveLongPause(minutes)
         }
     }
 
     fun toggleSound(useSound: Boolean) {
         viewModelScope.launch {
-            userPreferences.saveUseSound(useSound)
+            dataStoreManager.saveUseSound(useSound)
         }
     }
 
     fun toggleVibrate(useVibrate: Boolean) {
         viewModelScope.launch {
-            userPreferences.saveUseVibrate(useVibrate)
+            dataStoreManager.saveUseVibrate(useVibrate)
         }
     }
 
     fun toggleKeepScreenOn(keepScreenOn: Boolean) {
         viewModelScope.launch {
-            userPreferences.saveKeepScreenOn(keepScreenOn)
+            dataStoreManager.saveKeepScreenOn(keepScreenOn)
         }
     }
 
@@ -90,7 +92,7 @@ class SettingsViewModel(private val userPreferences: UserPreferences) : ViewMode
                     ?: throw IllegalStateException("Application context not found")
 
                 SettingsViewModel(
-                    userPreferences = UserPreferences(context)
+                    dataStoreManager = DataStoreManager(context)
                 )
             }
         }
