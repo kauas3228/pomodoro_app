@@ -1,5 +1,6 @@
 package com.ikaroorg.pomodoro_app.ui.screen
 
+import android.app.AlertDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -60,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ikaroorg.pomodoro_app.R
+import com.ikaroorg.pomodoro_app.data.model.Task
 import com.ikaroorg.pomodoro_app.viewmodel.HomeViewModel
 import com.ikaroorg.pomodoro_app.viewmodel.PomodoroSession
 
@@ -73,6 +75,8 @@ fun HomeScreen(
     var isMenuExpanded by remember { mutableStateOf(false) }
     var showAddTaskDialog by remember { mutableStateOf(false) }
     var newTaskTitle by remember { mutableStateOf("") }
+    var showDeleteTaskDialog by remember { mutableStateOf(false) }
+    var tempDeleteTask by remember { mutableStateOf<Task?>(null) }
 
     val activeColor = when (viewModel.currentSession) {
         PomodoroSession.FOCUS -> MaterialTheme.colorScheme.primary
@@ -89,12 +93,18 @@ fun HomeScreen(
     if (showAddTaskDialog) {
         AlertDialog(
             onDismissRequest = { showAddTaskDialog = false },
-            title = { Text("Nova Tarefa") },
+            title = { Text(
+                "Nova Tarefa",
+                style = MaterialTheme.typography.titleLarge
+            ) },
             text = {
                 OutlinedTextField(
                     value = newTaskTitle,
                     onValueChange = { newTaskTitle = it },
-                    label = { Text("Título da tarefa") },
+                    label = { Text(
+                        "Título da tarefa",
+                        style = MaterialTheme.typography.labelLarge
+                    ) },
                     modifier = Modifier.fillMaxWidth()
                 )
             },
@@ -109,17 +119,73 @@ fun HomeScreen(
                         }
                     }
                 ) {
-                    Text("Criar")
+                    Text(
+                        "Criar",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddTaskDialog = false }) {
-                    Text("Cancelar")
+                    Text(
+                        "Cancelar",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         )
     }
 
+    if(showDeleteTaskDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteTaskDialog = false },
+            title = { Text(
+                "Deseja excluir a tarefa?",
+                style = MaterialTheme.typography.titleLarge
+            ) },
+            text = {
+                Text(
+                    "Essa ação não pode ser desfeita.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if(tempDeleteTask != null){
+                            viewModel.deleteTask(tempDeleteTask!!.id)
+                            showDeleteTaskDialog = false
+                            isMenuExpanded = false
+                            tempDeleteTask = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(
+                        "Deletar",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleteTaskDialog = false
+                    tempDeleteTask = null
+                }) {
+                    Text(
+                        "Cancelar",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        )
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -382,7 +448,10 @@ fun HomeScreen(
                             )
                         }
                         IconButton(
-                            onClick = { viewModel.deleteTask(task.id) },
+                            onClick = {
+                                showDeleteTaskDialog = true
+                                tempDeleteTask = task
+                            },
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
