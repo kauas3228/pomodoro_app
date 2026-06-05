@@ -1,6 +1,5 @@
 package com.ikaroorg.pomodoro_app.ui.screen
 
-import android.app.AlertDialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -88,6 +87,30 @@ fun HomeScreen(
         PomodoroSession.FOCUS -> MaterialTheme.colorScheme.onPrimary
         PomodoroSession.SHORT_BREAK -> MaterialTheme.colorScheme.onSecondary
         PomodoroSession.LONG_BREAK -> MaterialTheme.colorScheme.onTertiary
+    }
+
+    if (viewModel.showAlarmDialog) {
+        AlertDialog(
+            onDismissRequest = {  },
+            title = { Text(
+                "Ciclo Finalizado!",
+                    style = MaterialTheme.typography.titleLarge
+            ) },
+            text = { Text(
+                "O tempo acabou. Deseja iniciar o próximo ciclo?",
+                style= MaterialTheme.typography.labelLarge
+            ) },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.stopAlarmAndNextSession() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = activeColor
+                    )
+                ) {
+                    Text("Próximo Ciclo")
+                }
+            }
+        )
     }
 
     if (showAddTaskDialog) {

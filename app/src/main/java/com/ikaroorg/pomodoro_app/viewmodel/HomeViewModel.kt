@@ -1,15 +1,18 @@
 package com.ikaroorg.pomodoro_app.viewmodel
 
+import android.app.Application
+import android.media.MediaPlayer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.ikaroorg.pomodoro_app.R
 import com.ikaroorg.pomodoro_app.data.local.DataStoreManager
 import com.ikaroorg.pomodoro_app.data.model.Task
 import kotlinx.coroutines.Job
@@ -26,9 +29,10 @@ enum class PomodoroSession {
 }
 
 class HomeViewModel(
+    application: Application,
     private val settingsViewModel: SettingsViewModel,
     private val dataStoreManager: DataStoreManager
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     var timerValue by mutableLongStateOf(25 * 60L)
         private set
@@ -42,6 +46,11 @@ class HomeViewModel(
     var focusCycles by mutableIntStateOf(0)
         private set
 
+    var useSoundValue by mutableStateOf(true)
+        private set
+    var showAlarmDialog by mutableStateOf(false)
+        private set
+
     val tasks: StateFlow<List<Task>> = dataStoreManager.tasks.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
@@ -49,27 +58,33 @@ class HomeViewModel(
     )
 
     private var timerJob: Job? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     init {
         viewModelScope.launch {
             settingsViewModel.focusTime.collectLatest { minutes ->
-                if (!isRunning && currentSession == PomodoroSession.FOCUS) {
+                if (!isRunning && currentSession == PomodoroSession.FOCUS && !showAlarmDialog) {
                     timerValue = minutes * 60L
                 }
             }
         }
         viewModelScope.launch {
             settingsViewModel.shortPause.collectLatest { minutes ->
-                if (!isRunning && currentSession == PomodoroSession.SHORT_BREAK) {
+                if (!isRunning && currentSession == PomodoroSession.SHORT_BREAK && !showAlarmDialog) {
                     timerValue = minutes * 60L
                 }
             }
         }
         viewModelScope.launch {
             settingsViewModel.longPause.collectLatest { minutes ->
-                if (!isRunning && currentSession == PomodoroSession.LONG_BREAK) {
+                if (!isRunning && currentSession == PomodoroSession.LONG_BREAK && !showAlarmDialog) {
                     timerValue = minutes * 60L
                 }
+            }
+        }
+        viewModelScope.launch {
+            settingsViewModel.useSound.collectLatest { useSound ->
+                useSoundValue = useSound
             }
         }
     }
@@ -111,7 +126,35 @@ class HomeViewModel(
     private fun onTimerFinished() {
         isRunning = false
         timerJob?.cancel()
-        
+        if(useSoundValue){
+            startAlarm()
+            showAlarmDialog = true
+        } else {
+            skipSession()
+        }
+    }
+
+    private fun startAlarm() {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer.create(getApplication(), R.raw.alarm_sound).apply {
+            isLooping = true
+            start()
+        }
+    }
+
+    fun stopAlarmAndNextSession() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+        showAlarmDialog = false
+
+        skipSession()
+    }
+
+    fun skipSession() {
+        isRunning = false
+        timerJob?.cancel()
+
         if (currentSession == PomodoroSession.FOCUS) {
             focusCycles++
             if (focusCycles >= 4) {
@@ -125,10 +168,6 @@ class HomeViewModel(
             }
             setSession(PomodoroSession.FOCUS)
         }
-    }
-
-    fun skipSession() {
-        onTimerFinished()
     }
 
     fun resetTimer() {
@@ -189,13 +228,23 @@ class HomeViewModel(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
     companion object {
         fun provideFactory(settingsViewModel: SettingsViewModel): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val context = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
                     ?: throw IllegalStateException("Application context not found")
-
-                HomeViewModel(settingsViewModel, dataStoreManager = DataStoreManager(context))
+                val application = context
+                HomeViewModel(
+                    application = application,
+                    settingsViewModel = settingsViewModel,
+                    dataStoreManager = DataStoreManager(application)
+                )
             }
         }
     }
