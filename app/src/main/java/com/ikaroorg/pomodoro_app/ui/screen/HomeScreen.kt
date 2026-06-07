@@ -102,7 +102,7 @@ fun HomeScreen(
             ) },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.stopAlarmAndNextSession() },
+                    onClick = { viewModel.stopAlarmAndVibrateAndNextSession() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = activeColor
                     )

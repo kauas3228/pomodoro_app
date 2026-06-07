@@ -1,7 +1,12 @@
 package com.ikaroorg.pomodoro_app.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.media.MediaPlayer
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -48,6 +53,8 @@ class HomeViewModel(
 
     var useSoundValue by mutableStateOf(true)
         private set
+    var useVibrateValue by mutableStateOf(true)
+        private set
     var showAlarmDialog by mutableStateOf(false)
         private set
 
@@ -59,6 +66,15 @@ class HomeViewModel(
 
     private var timerJob: Job? = null
     private var mediaPlayer: MediaPlayer? = null
+    private val vibrator: Vibrator by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = getApplication<Application>().getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getApplication<Application>().getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -85,6 +101,11 @@ class HomeViewModel(
         viewModelScope.launch {
             settingsViewModel.useSound.collectLatest { useSound ->
                 useSoundValue = useSound
+            }
+        }
+        viewModelScope.launch {
+            settingsViewModel.useVibrate.collectLatest { useVibrate ->
+                useVibrateValue = useVibrate
             }
         }
     }
@@ -126,8 +147,10 @@ class HomeViewModel(
     private fun onTimerFinished() {
         isRunning = false
         timerJob?.cancel()
-        if(useSoundValue){
-            startAlarm()
+        
+        if (useSoundValue || useVibrateValue) {
+            if (useSoundValue) startAlarm()
+            if (useVibrateValue) startVibration()
             showAlarmDialog = true
         } else {
             skipSession()
@@ -142,10 +165,25 @@ class HomeViewModel(
         }
     }
 
-    fun stopAlarmAndNextSession() {
+    private fun startVibration() {
+        val timings = longArrayOf(0, 500, 200, 500)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createWaveform(timings, 0))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(timings, 0)
+        }
+    }
+
+    private fun stopVibration() {
+        vibrator.cancel()
+    }
+
+    fun stopAlarmAndVibrateAndNextSession() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+        stopVibration()
         showAlarmDialog = false
 
         skipSession()
@@ -232,6 +270,7 @@ class HomeViewModel(
         super.onCleared()
         mediaPlayer?.release()
         mediaPlayer = null
+        stopVibration()
     }
 
     companion object {
