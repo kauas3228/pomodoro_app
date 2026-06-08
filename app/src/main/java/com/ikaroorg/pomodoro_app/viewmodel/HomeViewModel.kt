@@ -57,7 +57,8 @@ class HomeViewModel(
         private set
     var showAlarmDialog by mutableStateOf(false)
         private set
-
+    var keepScreenOnValue by mutableStateOf(false)
+        private set
     val tasks: StateFlow<List<Task>> = dataStoreManager.tasks.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(3000),
@@ -106,6 +107,11 @@ class HomeViewModel(
         viewModelScope.launch {
             settingsViewModel.useVibrate.collectLatest { useVibrate ->
                 useVibrateValue = useVibrate
+            }
+        }
+        viewModelScope.launch {
+            settingsViewModel.keepScreenOn.collectLatest { keepScreenOn ->
+                keepScreenOnValue = keepScreenOn
             }
         }
     }

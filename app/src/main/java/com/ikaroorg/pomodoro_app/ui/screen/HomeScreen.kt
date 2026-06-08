@@ -54,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -348,9 +349,13 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(26.dp))
             Column(
-                Modifier.width(280.dp)
+                modifier = Modifier.width(280.dp)
                     .height(280.dp)
-                    .border(8.dp, activeColor, CircleShape),
+                    .border(8.dp, activeColor, CircleShape)
+                    .then(
+                        if (viewModel.keepScreenOnValue) Modifier.keepScreenOn()
+                        else Modifier
+                    ),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
