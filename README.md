@@ -55,7 +55,7 @@ app/src/main/java/com/ikaroorg/pomodoro_app/
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/pomodoro_app.git
+git clone https://github.com/kauas3228/pomodoro_app.git
 cd pomodoro_app
 ```
 
